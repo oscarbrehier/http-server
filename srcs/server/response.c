@@ -53,7 +53,7 @@ char	*create_status_line(const char *version, int status_code)
 	return (status_line);
 }
 
-char	*create_response(int status, t_content_type content_type, char *body)
+char	*create_response(int status, t_content_type content_type, const char *body)
 {
 	char		*status_line;
 	char		*content_type_str;

@@ -1,19 +1,19 @@
 #include "commons.h"
 #include "dynamic_buffer.h"
 #include "server/response.h"
+#include "server/request.h"
 
 #define PORT 8080
 #define DEFAULT_BUFFER_SIZE 2048
 #define READ_CHUNK_SIZE 1024
 
-int	read_request(int socket)
+int	read_request(int socket, char **output)
 {
 	t_dynamic_buffer	*recv_buffer;
 
 	recv_buffer = dynamic_buffer_create(DEFAULT_BUFFER_SIZE);
 	if (!recv_buffer)
 	{
-		dynamic_buffer_destroy(recv_buffer);
 		fprintf(stderr, "buffer memory allocation failured\n");
 		return (-1);
 	}
@@ -29,6 +29,14 @@ int	read_request(int socket)
 	if (bytes_read <= 0)
 	{
 		printf("Request does not contain any content\n");
+		dynamic_buffer_destroy(recv_buffer);
+		return (-1);
+	}
+	*output = strdup(recv_buffer->buffer);
+	if (!*output)
+	{
+		perror("strdup");
+		dynamic_buffer_destroy(recv_buffer);
 		return (-1);
 	}
 	printf("Request content: \n%s\n", recv_buffer->buffer);
@@ -78,14 +86,21 @@ int	main(void)
 		exit(EXIT_FAILURE);
 	}
 	printf("Connection accepted\n");
-	if (read_request(new_socket) == -1)
+	char	*request;
+	if (read_request(new_socket, &request) == -1)
 	{
 		close(new_socket);
 		close(server_fd);
 	}
-	char *response = create_response(200, TEXT_HTML, "<h1>Hello world</h1>");
+	t_request req = req_parse(request);
+
+	const char	*response_body = serve_request(req);
+	char 	*response = create_response(200, TEXT_HTML, response_body);
 	send(new_socket, response, strlen(response), 0);
+	free(request);
 	free(response);
+	free((void *)response_body);
+	free_request(&req);
 	close(new_socket);
 	close(server_fd);
 	return (0);
