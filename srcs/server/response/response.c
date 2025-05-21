@@ -13,6 +13,7 @@ const char	*get_reason_phrase(int status_code)
 		case 401: return "Unauthorized";
 		case 403: return "Forbidden";
 		case 404: return "Not Found";
+		case 405: return "Method Not Allowed";
 		case 500: return "Internal Server Error";
 		case 503: return "Service Unavailable";
 		default:  return "Unknown Status";
@@ -53,15 +54,17 @@ char	*create_status_line(const char *version, int status_code)
 	return (status_line);
 }
 
-char	*create_response(int status, t_content_type content_type, const char *body)
+char	*create_response(int status, t_content_type content_type, const char *body, size_t body_length)
 {
 	char		*status_line;
 	char		*content_type_str;
 	char		*response;
 	size_t		response_length;
-	size_t		body_length;
 
-	body_length = strlen(body);
+	if (body_length == (size_t)-1)
+	{
+		body_length = strlen(body);
+	}
 	status_line = create_status_line("1.1", status);
 	if (!status_line)
 		return (NULL);

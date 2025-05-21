@@ -26,7 +26,7 @@ char	*extract_line(char *text)
 	return (line);
 }
 
-void	parse_start_line(char *start_line, t_request *req)
+void	parse_start_line(char *start_line, t_http_request *req)
 {
 	char	*buffer;
 	char	*method;
@@ -58,9 +58,9 @@ void	parse_start_line(char *start_line, t_request *req)
 	free(buffer);
 }
 
-t_request	req_parse(char *req_text)
+t_http_request	req_parse(char *req_text)
 {
-	t_request	req;
+	t_http_request	req;
 	char		*start_line_text;
 
 	start_line_text = extract_line(req_text);

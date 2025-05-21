@@ -1,7 +1,28 @@
 #include "commons.h"
 #include "utils/file.h"
 
-char	*read_file(int fd)
+char	*resolve_path(const char *filename)
+{
+	const char	dir[] = "www/";
+	size_t		dir_len;
+	size_t		filename_len;
+	char		*path;
+
+	dir_len = strlen(dir);
+	filename_len = strlen(filename);
+	path = (char *)malloc(sizeof(char) * (dir_len + filename_len + 1));
+	if (!path)
+	{
+		perror("malloc");
+		return (NULL);
+	}
+	memcpy(path, dir, dir_len);
+	memcpy(path + dir_len, filename, filename_len);
+	path[dir_len + filename_len] = '\0';
+	return (path);
+}
+
+char	*read_file(int fd, int *out_size)
 {
 	char	*buffer;
 	char	*temp;
@@ -51,5 +72,6 @@ char	*read_file(int fd)
 	}
 	buffer = temp;
 	buffer[buffer_size] = '\0';
+	*out_size = buffer_size;
 	return (buffer);
 }

@@ -30,22 +30,19 @@ int count_words(char *str)
 	return (count);
 }
 
-char	*concat_path(const char *dir, const char *filename)
+char	*concat(char *s1, char *s2)
 {
-	size_t	dir_len;
-	size_t	filename_len;
-	char	*path;
+	char	*temp;
+	int		s1_len;
+	int		s2_len;
 
-	dir_len = strlen(dir);
-	filename_len = strlen(filename);
-	path = (char *)malloc(sizeof(char) * (dir_len + filename_len + 1));
-	if (!path)
-	{
-		perror("malloc");
+	s1_len = strlen(s1);
+	s2_len = strlen(s2);
+	temp = realloc(s1, sizeof(char) * (s1_len + s2_len + 1));
+	if (!temp)
 		return (NULL);
-	}
-	memcpy(path, dir, dir_len);
-	memcpy(path + dir_len, filename, filename_len);
-	path[dir_len + filename_len] = '\0';
-	return (path);
+	s1 = temp;
+	memcpy(s1 + s1_len, s2, s2_len);
+	s1[s1_len + s2_len] = '\0';
+	return (s1);
 }
