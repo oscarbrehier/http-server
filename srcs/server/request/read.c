@@ -5,6 +5,7 @@
 int	read_request(int socket, char **output)
 {
 	t_dynamic_buffer	*recv_buffer;
+	ssize_t				bytes_read;
 
 	recv_buffer = dynamic_buffer_create(DEFAULT_BUFFER_SIZE);
 	if (!recv_buffer)
@@ -13,7 +14,6 @@ int	read_request(int socket, char **output)
 		return (-1);
 	}
 	char	recv_chunk[READ_CHUNK_SIZE];
-	ssize_t	bytes_read;
 	while ((bytes_read = recv(socket, recv_chunk, sizeof(recv_chunk) - 1, 0)) > 0)
 	{
 		recv_chunk[bytes_read] = '\0';

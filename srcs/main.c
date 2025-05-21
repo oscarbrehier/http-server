@@ -54,8 +54,9 @@ int	main(void)
 		close(new_socket);
 		close(server_fd);
 	}
-	t_http_request req = req_parse(request);
+	t_http_request req;
 
+	req_parse(&req, request);
 	const char	*response = handle_request(req);
 	send(new_socket, response, strlen(response), 0);
 	free(request);

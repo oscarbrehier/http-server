@@ -13,19 +13,23 @@ const char	*handle_request(t_http_request req)
 	const char	*res_content;
 	int			response_size;
 	
-	target = strdup(req.target);
-	if (!target)
-		return create_response(500, TEXT_HTML, "<h1>Internal Server Error</h1>", -1);
+	// for (int i = 0; i < req.header_count; i++)
+	// {
+	// 	printf("header key: %s and value: %s\n", req.headers[i].key, req.headers[i].value);
+	// }
+	// printf("\n\n body is: \n%s\n\n", req.body);
+	target = NULL;
 	if (strcmp(req.method, GET) == 0)
 	{
-		if (!strstr(target, ".html"))
+		if (!strstr(req.target, ".html"))
 		{
-			target = concat(target, ".html");
+			target = concat(req.target, ".html");
 			if (!target)
 				return create_response(500, TEXT_HTML, "<h1>Internal Server Error</h1>", -1);
 		}
-		path = resolve_path(target);
-		free(target);
+		path = resolve_path(target == NULL ? req.target : target);
+		if (target)
+			free(target);
 		if (!path)
 		{
 			fprintf(stderr, "invalid path\n");
