@@ -1,5 +1,6 @@
 #include "commons.h"
 #include "server/response.h"
+#include "utils/mime.h"
 
 const char	*get_reason_phrase(int status_code)
 {
@@ -17,15 +18,6 @@ const char	*get_reason_phrase(int status_code)
 		case 500: return "Internal Server Error";
 		case 503: return "Service Unavailable";
 		default:  return "Unknown Status";
-	}
-}
-
-char	*get_content_type(t_content_type content_type)
-{
-	switch (content_type)
-		{
-		case APPLICATION_JSON: return "application/json";
-		default: return "text/html";
 	}
 }
 
@@ -54,10 +46,9 @@ char	*create_status_line(const char *version, int status_code)
 	return (status_line);
 }
 
-char	*create_response(int status, t_content_type content_type, const char *body, size_t body_length)
+char	*create_response(int status, const char *content_type, const char *body, size_t body_length)
 {
 	char		*status_line;
-	char		*content_type_str;
 	char		*response;
 	size_t		response_length;
 
@@ -68,9 +59,8 @@ char	*create_response(int status, t_content_type content_type, const char *body,
 	status_line = create_status_line("1.1", status);
 	if (!status_line)
 		return (NULL);
-	content_type_str = get_content_type(content_type);
 	response_length = snprintf(NULL, 0,
-		"%sContent-Type: %s\r\nContent-Length: %ld\r\n\r\n%s", status_line, content_type_str, body_length, body);
+		"%sContent-Type: %s\r\nContent-Length: %ld\r\n\r\n%s", status_line, content_type, body_length, body);
 	if (response_length <= 0)
 	{
 		fprintf(stderr, "response length invalid\n");
@@ -86,7 +76,7 @@ char	*create_response(int status, t_content_type content_type, const char *body,
 		return (NULL);
 	}
 	snprintf(response, response_length + 1,
-		"%sContent-Type: %s\r\nContent-Length: %ld\r\n\r\n%s", status_line, content_type_str, body_length, body);
+		"%sContent-Type: %s\r\nContent-Length: %ld\r\n\r\n%s", status_line, content_type, body_length, body);
 	free(status_line);
 	return (response);
 }

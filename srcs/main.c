@@ -48,18 +48,18 @@ int	main(void)
 		exit(EXIT_FAILURE);
 	}
 	printf("Connection accepted\n");
-	char	*request;
-	if (read_request(new_socket, &request) == -1)
+	char	*raw_request;
+	t_http_request req;
+	if (read_request(new_socket, &raw_request) == -1)
 	{
 		close(new_socket);
 		close(server_fd);
 	}
-	t_http_request req;
 
-	req_parse(&req, request);
+	parse_http_request(&req, raw_request);
 	const char	*response = handle_request(req);
 	send(new_socket, response, strlen(response), 0);
-	free(request);
+	free(raw_request);
 	free((void*)response);
 	free_request(&req);
 	close(new_socket);

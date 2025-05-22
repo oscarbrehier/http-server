@@ -28,7 +28,16 @@ char	*extract_line(char *text, size_t *length)
 	return (line);
 }
 
-int	parse_start_line(t_http_request *req, char *req_text)
+t_http_method	parse_method(const char *method_str)
+{
+	if (strcmp(method_str, "GET") == 0)
+		return (HTTP_METHOD_GET);
+	else if (strcmp(method_str, "POST") == 0)
+		return (HTTP_METHOD_POST);
+	return (HTTP_METHOD_UNKNOWN);
+}
+
+int	parse_start_line(t_http_request *req, char *raw_request)
 {
 	char	*line;
 	char	*method;
@@ -36,7 +45,7 @@ int	parse_start_line(t_http_request *req, char *req_text)
 	char	*version;
 	size_t	line_length;
 	
-	line = extract_line(req_text, &line_length);
+	line = extract_line(raw_request, &line_length);
 	if (!line)
 	{
 		perror("strdup");
@@ -51,10 +60,10 @@ int	parse_start_line(t_http_request *req, char *req_text)
 		free(line);
 		return (-1);
 	}
-	req->method = strdup(method);
+	req->method = parse_method(method);
 	req->target = strdup(target);
 	req->version = strdup(version);
-	if (!req->method || !req->target || !req->version)
+	if (!req->target || !req->version)
 	{
 		perror("strdup for request fields");
 		free(line);
@@ -100,7 +109,7 @@ int process_header(t_http_request *request, int header_idx, char *line)
 	return (0);
 }
 
-int	parse_headers(t_http_request *request, char *req_text, int start_idx)
+int	parse_headers(t_http_request *request, char *raw_request, int start_idx)
 {
 	int			header_count;	
 	size_t		line_len;
@@ -117,14 +126,14 @@ int	parse_headers(t_http_request *request, char *req_text, int start_idx)
 		perror("malloc headers");
 		return (-1);
 	}
-	headers_end = strstr(req_text, "\r\n\r\n");
+	headers_end = strstr(raw_request, "\r\n\r\n");
 	if (!headers_end)
 	{
 		fprintf(stderr, "Invalid HTTP request: end of headers missing\n");
 		return (-1);
 	}
 	header_count = 0;
-	current = req_text + start_idx + 2;
+	current = raw_request + start_idx + 2;
 	while (current < headers_end)
 	{
 		if (header_count >= headers_capacity)
@@ -151,21 +160,26 @@ int	parse_headers(t_http_request *request, char *req_text, int start_idx)
 	return (0);
 }
 
-int	copy_body(t_http_request *request, char *req_text)
+int	copy_body(t_http_request *request, char *raw_request)
 {
 	const char	*body_start;
 	size_t		body_length;
 	char		*cl_header;
 	
-	body_start = strstr(req_text, "\r\n\r\n");
+	body_start = strstr(raw_request, "\r\n\r\n");
 	if (!body_start)
 	{
-		fprintf(stderr, "Invalid HTTP request: no body found\n");
-		return (-1);
+		request->body = NULL;
+		return (0);
 	}
 	body_start += 4;
 	cl_header = get_header(request, "Content-Length");
 	body_length = cl_header ? (size_t)atoi(cl_header) : strlen(body_start);
+	if (body_length == 0)
+	{
+		request->body = NULL;
+		return (0);
+	}
 	request->body = (char *)malloc(sizeof(char) * (body_length + 1));
 	if (!request->body)
 	{
@@ -177,18 +191,18 @@ int	copy_body(t_http_request *request, char *req_text)
 	return (0);
 }
 
-int	req_parse(t_http_request *request, char *req_text)
+int	parse_http_request(t_http_request *request, char *raw_request)
 {
 	int				start_line_len;
 
 	if (!request)
 		return (-1);
 	memset(request, 0, sizeof(t_http_request));
-	start_line_len = parse_start_line(request, req_text);
+	start_line_len = parse_start_line(request, raw_request);
 	if (start_line_len < 0)
 		return (-1);
-	if (parse_headers(request, req_text, start_line_len) < 0 ||
-		copy_body(request, req_text)
+	if (parse_headers(request, raw_request, start_line_len) < 0 ||
+		copy_body(request, raw_request)
 	)
 	{
 		return (-1);

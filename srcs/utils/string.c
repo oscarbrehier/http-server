@@ -32,17 +32,17 @@ int count_words(char *str)
 
 char	*concat(char *s1, char *s2)
 {
-	char	*temp;
-	int		s1_len;
-	int		s2_len;
+	char		*str;
+	int			s1_len;
+	int			s2_len;
 
 	s1_len = strlen(s1);
 	s2_len = strlen(s2);
-	temp = realloc(s1, sizeof(char) * (s1_len + s2_len + 1));
-	if (!temp)
+	str = malloc(sizeof(char) * (s1_len + s2_len + 1));
+	if (!str)
 		return (NULL);
-	s1 = temp;
-	memcpy(s1 + s1_len, s2, s2_len);
-	s1[s1_len + s2_len] = '\0';
-	return (s1);
+	memcpy(str, s1, s1_len);
+	memcpy(str + s1_len, s2, s2_len);
+	str[s1_len + s2_len] = '\0';
+	return (str);
 }
